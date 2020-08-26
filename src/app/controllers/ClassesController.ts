@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
-import convertHourToMinutes from "../utils/convertHourToMinutes";
-import db from '../database/connection';
+import convertHourToMinutes from "../../utils/convertHourToMinutes";
+import db from '../../database/connection';
 
 interface ScheduleItem {
   week_day: number;
@@ -36,33 +36,22 @@ export default class ClassesController {
       })
       .where('classes.subject', '=', subject)
       .join('users', 'classes.user_id', '=', 'users.id')
-      .select(['classes.*', 'users.*']);
+      .select(['classes.*', 'users.name', 'users.lastname', 'users.email', 'users.avatar', 'users.bio', 'users.whatsapp']);
 
       return response.json(classes);
   }
 
   async create(request: Request, response: Response) {
     const {
-      name,
-      avatar,
-      whatsapp,
-      bio,
       subject,
       cost,
       schedule } = request.body;
+
+      const user_id = request.user.id;
   
       const trx = await db.transaction();
   
       try {
-        const insertedUsersIds = await trx('users').insert({
-          name,
-          avatar,
-          whatsapp,
-          bio,
-        }).returning('id');
-    
-        const user_id = insertedUsersIds[0];
-    
         const insertedClassesIds = await trx('classes').insert({
           subject,
           cost,
